@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".", // Define a raiz para os paths
+    "paths": {
+      "@/*": ["./src/*"] // Mapeia `@/` para a pasta `src`
+    },
+    "target": "ESNext", // Define a versão do JavaScript a ser usada
+    "module": "ESNext", // Define o padrão de módulos
+    "jsx": "react", // Suporte a JSX
+    "strict": true, // Habilita verificações estritas
+    "esModuleInterop": true, // Suporte para importar módulos comuns
+    "skipLibCheck": true, // Ignora checagens de tipos em bibliotecas
+    "moduleResolution": "node" // Resolução de módulos no estilo Node.js
+  },
+  "include": ["src"], // Inclui a pasta `src` no projeto
+  "exclude": ["node_modules", "dist"] // Exclui as pastas especificadas
+}
