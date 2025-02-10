@@ -21,7 +21,7 @@ const MapView = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [lastAlertSent, setLastAlertSent] = useState(false);
 
-  const API_ALERT_URL = "/api/send-alert"; // URL da API para envio de alerta
+  // const API_ALERT_URL = "/api/send-alert"; // URL da API para envio de alerta
 
   // Função para criar o polígono do raio ao redor da rota
   const createFencePolygon = (coords, bufferDistance) => {
@@ -91,13 +91,18 @@ const MapView = () => {
 
   const sendAlert = async () => {
     try {
-      await axios.post(API_ALERT_URL, {
-        message: "O marcador está fora do raio de segurança!",
-        location: staticLocation,
-      });
-      console.log("Alerta enviado com sucesso!");
+      const payload = {
+        number: "5551998886750", // Número fixo para envio (ajuste se necessário)
+        openTicket: "0",
+        queueId: "0",
+        body: `O marcador está fora do raio de segurança!\nLocalização: Latitude ${staticLocation[0]}, Longitude ${staticLocation[1]}`,
+      };
+  
+      const response = await axios.post("https://atendimentoapi4.wichat.com.br/api/messages/send", payload);
+  
+      console.log("Alerta enviado com sucesso!", response.data);
     } catch (error) {
-      console.error("Erro ao enviar alerta:", error);
+      console.error("Erro ao enviar alerta:", error.response?.data || error.message);
     }
   };
 
