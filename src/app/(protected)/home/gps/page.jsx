@@ -8,6 +8,7 @@ import Loading from "@/components/load/loading";
 import Sidebar from "@/components/sidebar";
 import styles from "./styles.module.css";
 import { FaTimes } from "react-icons/fa";
+import { sendAlert } from "@/core/clients/clients";
 
 const MapView = () => {
   const [savedRoutes, setSavedRoutes] = useState([]);
@@ -79,9 +80,8 @@ const MapView = () => {
 
       setIsInsideFence(isMarkerInside);
 
-      // Se o marcador está fora e ainda não enviou alerta, envia
       if (!isMarkerInside && !lastAlertSent) {
-        sendAlert();
+        sendAlert(staticLocation);
         setLastAlertSent(true);
       } else if (isMarkerInside) {
         setLastAlertSent(false); // Reseta para permitir envio novamente
@@ -89,22 +89,22 @@ const MapView = () => {
     }
   }, [savedRoutes, staticLocation]);
 
-  const sendAlert = async () => {
-    try {
-      const payload = {
-        number: "5551998886750", // Número fixo para envio (ajuste se necessário)
-        openTicket: "0",
-        queueId: "0",
-        body: `O marcador está fora do raio de segurança!\nLocalização: Latitude ${staticLocation[0]}, Longitude ${staticLocation[1]}`,
-      };
+  // const sendAlert = async () => {
+  //   try {
+  //     const payload = {
+  //       number: "5551998886750", // Número fixo para envio (ajuste se necessário)
+  //       openTicket: "0",
+  //       queueId: "0",
+  //       body: `O marcador está fora do raio de segurança!\nLocalização: Latitude ${staticLocation[0]}, Longitude ${staticLocation[1]}`,
+  //     };
   
-      const response = await axios.post("https://atendimentoapi4.wichat.com.br/api/messages/send", payload);
+  //     const response = await axios.post("https://atendimentoapi4.wichat.com.br/api/messages/send", payload);
   
-      console.log("Alerta enviado com sucesso!", response.data);
-    } catch (error) {
-      console.error("Erro ao enviar alerta:", error.response?.data || error.message);
-    }
-  };
+  //     console.log("Alerta enviado com sucesso!", response.data);
+  //   } catch (error) {
+  //     console.error("Erro ao enviar alerta:", error.response?.data || error.message);
+  //   }
+  // };
 
   if (!leaflet || !mapComponents || savedRoutes.length === 0) {
     return <Loading />;
