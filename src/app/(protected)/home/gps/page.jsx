@@ -21,6 +21,23 @@ const MapView = () => {
   const [longitude, setLongitude] = useState(staticLocation[1]);
   const [isEditing, setIsEditing] = useState(false);
   const [lastAlertSent, setLastAlertSent] = useState(false);
+  const [numbers, setNumbers] = useState(["5551998886750"]);
+  const [alertTrigger, setAlertTrigger] = useState(""); // "edit" ou "auto"
+  const [newNumber, setNewNumber] = useState("");
+  const [isAlertSent, setIsAlertSent] = useState(false);
+
+  // Função para adicionar um novo número
+  const addNumber = () => {
+    if (newNumber.trim() !== "" && !numbers.includes(newNumber)) {
+      setNumbers([...numbers, newNumber]);
+      setNewNumber("");
+    }
+  };
+
+  // Função para remover um número da lista
+  const removeNumber = (index) => {
+    setNumbers(numbers.filter((_, i) => i !== index));
+  };
 
   // const API_ALERT_URL = "/api/send-alert"; // URL da API para envio de alerta
 
@@ -60,34 +77,41 @@ const MapView = () => {
   useEffect(() => {
     if (savedRoutes.length > 0) {
       let isMarkerInside = false;
-
-      // Verifica se o marcador está dentro de qualquer rota
+  
       savedRoutes.forEach((route) => {
-        const polygonCoords = createFencePolygon(
-          route.coordinates,
-          route.radius
-        );
-
+        const polygonCoords = createFencePolygon(route.coordinates, route.radius);
+  
         if (polygonCoords) {
           const point = turf.point([staticLocation[1], staticLocation[0]]);
           const polygon = turf.polygon([polygonCoords]);
-
+  
           if (turf.booleanPointInPolygon(point, polygon)) {
             isMarkerInside = true;
           }
         }
       });
-
+  
       setIsInsideFence(isMarkerInside);
-
-      if (!isMarkerInside && !lastAlertSent) {
-        triggerAlert(staticLocation); // Chamada via o intermediário do lado do servidor
-        setLastAlertSent(true);
-      } else if (isMarkerInside) {
-        setLastAlertSent(false);
-      }      
+  
+      // 🔹 Se o marcador sair do raio e ainda não foi enviado um alerta de forma automática
+      if (!isMarkerInside && !isAlertSent && alertTrigger !== "edit") {
+        console.log("🚨 O marcador saiu do raio! Enviando alerta...");
+        triggerAlert(staticLocation, numbers);
+        setIsAlertSent(true);
+      }
+  
+      // 🔹 Se o marcador voltar para dentro do raio, reseta o estado para permitir novos alertas
+      if (isMarkerInside) {
+        setIsAlertSent(false);
+        setAlertTrigger(""); // Reseta o trigger
+      }
     }
   }, [savedRoutes, staticLocation]);
+  
+  
+  
+  
+  
 
   // const sendAlert = async () => {
   //   try {
@@ -138,7 +162,17 @@ const MapView = () => {
     setStaticLocation(newLocation);
     localStorage.setItem("markerLocation", JSON.stringify(newLocation));
     setIsEditing(false);
+  
+    console.log("📍 Localização editada! Enviando alerta...");
+    
+    // 🔹 Evita que o `useEffect` envie um alerta extra
+    setAlertTrigger("edit");
+    triggerAlert(newLocation, numbers);
   };
+  
+  
+  
+  
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
@@ -201,157 +235,175 @@ const MapView = () => {
       </div>
 
       {isEditing && (
-        <div
+  <div
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 9999,
+      padding: "10px",
+    }}
+  >
+    <div
+      style={{
+        backgroundColor: "#fff",
+        padding: "30px",
+        borderRadius: "12px",
+        boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.3)",
+        width: "100%",
+        maxWidth: "400px",
+        textAlign: "center",
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "20px",
+      }}
+    >
+      {/* Botão de fechar */}
+      <button
+        onClick={() => setIsEditing(false)}
+        style={{
+          position: "absolute",
+          top: "10px",
+          right: "10px",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          fontSize: "20px",
+          color: "#333",
+          transition: "color 0.3s ease-in-out",
+        }}
+        onMouseEnter={(e) => (e.target.style.color = "red")}
+        onMouseLeave={(e) => (e.target.style.color = "#333")}
+      >
+        <FaTimes />
+      </button>
+
+      {/* Título */}
+      <h3 style={{ fontSize: "1.5rem", color: "#333", fontWeight: "bold" }}>
+        Editar Coordenadas
+      </h3>
+
+      {/* Inputs de Latitude e Longitude */}
+      <label style={{ fontWeight: "bold", textAlign: "left", width: "100%" }}>
+        Latitude:
+        <input
+          type="number"
+          step="0.000001"
+          value={latitude}
+          onChange={handleLatitudeChange}
           style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 9999,
-            padding: "10px", // Para espaçamento em telas menores
+            marginTop: "5px",
+            width: "100%",
+            padding: "10px",
+            border: "1px solid #ccc",
+            borderRadius: "6px",
           }}
-        >
-          <div
-            style={{
-              backgroundColor: "#fff",
-              padding: "30px",
-              borderRadius: "12px",
-              boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.3)",
-              width: "100%",
-              maxWidth: "400px",
-              textAlign: "center",
-              position: "relative",
-              display: "flex",
-              flexDirection: "column", // Alinha os filhos verticalmente
-              alignItems: "center", // Centraliza horizontalmente os elementos filhos
-              gap: "20px", // Espaço entre os inputs
-            }}
-          >
-            {/* Botão de fechar */}
+        />
+      </label>
+
+      <label style={{ fontWeight: "bold", textAlign: "left", width: "100%" }}>
+        Longitude:
+        <input
+          type="number"
+          step="0.000001"
+          value={longitude}
+          onChange={handleLongitudeChange}
+          style={{
+            marginTop: "5px",
+            width: "100%",
+            padding: "10px",
+            border: "1px solid #ccc",
+            borderRadius: "6px",
+          }}
+        />
+      </label>
+
+      {/* Lista de Números de Celular */}
+      <h4 style={{ fontSize: "1.2rem", color: "#333" }}>Números para Envio:</h4>
+      <ul style={{ listStyleType: "none", padding: 0, width: "100%" }}>
+        {numbers.map((num, index) => (
+          <li key={index} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
+            <span>{num}</span>
             <button
-              onClick={() => setIsEditing(false)}
+              onClick={() => removeNumber(index)}
               style={{
-                position: "absolute",
-                top: "10px",
-                right: "10px",
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "20px",
-                color: "#333",
-                transition: "color 0.3s ease-in-out",
-              }}
-              onMouseEnter={(e) => (e.target.style.color = "red")}
-              onMouseLeave={(e) => (e.target.style.color = "#333")}
-            >
-              <FaTimes />
-            </button>
-
-            {/* Título */}
-            <h3
-              style={{
-                fontSize: "1.5rem",
-                color: "#333",
-                marginBottom: "20px",
-                fontWeight: "bold",
-              }}
-            >
-              Editar Coordenadas
-            </h3>
-
-            {/* Inputs de latitude e longitude */}
-            <div
-              style={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px", // Espaço entre o label e o input
-              }}
-            >
-              <label
-                style={{
-                  display: "flex",
-                  flexDirection: "column", // Alinha o label e o input verticalmente
-                  fontSize: "14px",
-                  fontWeight: "bold",
-                  color: "#333",
-                  textAlign: "left",
-                }}
-              >
-                Latitude:
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={latitude}
-                  onChange={handleLatitudeChange}
-                  style={{
-                    marginTop: "5px",
-                    width: "100%",
-                    padding: "10px",
-                    border: "1px solid #ccc",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                  }}
-                />
-              </label>
-
-              <label
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  fontSize: "14px",
-                  fontWeight: "bold",
-                  color: "#333",
-                  textAlign: "left",
-                }}
-              >
-                Longitude:
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={longitude}
-                  onChange={handleLongitudeChange}
-                  style={{
-                    marginTop: "5px",
-                    width: "100%",
-                    padding: "10px",
-                    border: "1px solid #ccc",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                  }}
-                />
-              </label>
-            </div>
-
-            {/* Botão Salvar */}
-            <button
-              onClick={handleSaveLocation}
-              style={{
-                backgroundColor: "#28a745",
+                background: "red",
                 color: "#fff",
                 border: "none",
-                padding: "12px 20px",
-                borderRadius: "8px",
-                fontSize: "16px",
+                borderRadius: "4px",
+                padding: "4px 8px",
                 cursor: "pointer",
-                fontWeight: "bold",
-                transition: "background-color 0.3s ease",
-                marginTop: "20px",
-                width: "100%", // Ocupa toda a largura disponível
               }}
-              onMouseEnter={(e) => (e.target.style.backgroundColor = "#218838")}
-              onMouseLeave={(e) => (e.target.style.backgroundColor = "#28a745")}
             >
-              Salvar
+              X
             </button>
-          </div>
-        </div>
-      )}
+          </li>
+        ))}
+      </ul>
+
+      {/* Input para adicionar novo número */}
+      <div style={{ width: "100%", display: "flex", gap: "10px" }}>
+        <input
+          type="text"
+          value={newNumber}
+          onChange={(e) => setNewNumber(e.target.value)}
+          placeholder="Novo número"
+          style={{
+            flex: 1,
+            padding: "10px",
+            border: "1px solid #ccc",
+            borderRadius: "6px",
+          }}
+        />
+        <button
+          onClick={addNumber}
+          style={{
+            backgroundColor: "#007bff",
+            color: "#fff",
+            border: "none",
+            padding: "10px",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          +
+        </button>
+      </div>
+
+      {/* Botão Salvar */}
+      <button
+        onClick={handleSaveLocation}
+        style={{
+          backgroundColor: "#28a745",
+          color: "#fff",
+          border: "none",
+          padding: "12px 20px",
+          borderRadius: "8px",
+          fontSize: "16px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          transition: "background-color 0.3s ease",
+          marginTop: "20px",
+          width: "100%",
+        }}
+        onMouseEnter={(e) => (e.target.style.backgroundColor = "#218838")}
+        onMouseLeave={(e) => (e.target.style.backgroundColor = "#28a745")}
+      >
+        Salvar
+      </button>
+    </div>
+  </div>
+)}
+
     </>
   );
 };
