@@ -8,7 +8,7 @@ import Loading from "@/components/load/loading";
 import Sidebar from "@/components/sidebar";
 import styles from "./styles.module.css";
 import { FaTimes } from "react-icons/fa";
-import { sendAlert } from "@/core/clients/clients";
+import { triggerAlert } from "./action"; // Importação do intermediário
 
 const MapView = () => {
   const [savedRoutes, setSavedRoutes] = useState([]);
@@ -81,11 +81,11 @@ const MapView = () => {
       setIsInsideFence(isMarkerInside);
 
       if (!isMarkerInside && !lastAlertSent) {
-        sendAlert(staticLocation);
+        triggerAlert(staticLocation); // Chamada via o intermediário do lado do servidor
         setLastAlertSent(true);
       } else if (isMarkerInside) {
-        setLastAlertSent(false); // Reseta para permitir envio novamente
-      }
+        setLastAlertSent(false);
+      }      
     }
   }, [savedRoutes, staticLocation]);
 
