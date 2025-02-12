@@ -291,6 +291,7 @@
     cursor: pointer;
     display: flex;
     align-items: center;
+    margin-right: 10px;
   }
   
   .toggleButton:hover {

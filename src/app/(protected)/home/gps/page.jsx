@@ -26,6 +26,18 @@ const MapView = () => {
   const [newNumber, setNewNumber] = useState("");
   const [isAlertSent, setIsAlertSent] = useState(false);
 
+useEffect(() => {
+    const storedNumbers = JSON.parse(localStorage.getItem("phoneNumbers")) || ["5551998886750"];
+    console.log("📞 Números carregados do LocalStorage:", storedNumbers); // DEBUG
+    setNumbers(storedNumbers);
+  }, []);
+  
+
+  // 🔹 Função para salvar os números no LocalStorage
+  const saveNumbersToLocalStorage = (updatedNumbers) => {
+    localStorage.setItem("phoneNumbers", JSON.stringify(updatedNumbers));
+    setNumbers(updatedNumbers);
+  };
   // Função para adicionar um novo número
   const addNumber = () => {
     if (newNumber.trim() !== "" && !numbers.includes(newNumber)) {
@@ -76,37 +88,42 @@ const MapView = () => {
 
   useEffect(() => {
     if (savedRoutes.length > 0) {
-      let isMarkerInside = false;
-  
-      savedRoutes.forEach((route) => {
-        const polygonCoords = createFencePolygon(route.coordinates, route.radius);
-  
-        if (polygonCoords) {
-          const point = turf.point([staticLocation[1], staticLocation[0]]);
-          const polygon = turf.polygon([polygonCoords]);
-  
-          if (turf.booleanPointInPolygon(point, polygon)) {
-            isMarkerInside = true;
-          }
+        let isMarkerInside = false;
+
+        savedRoutes.forEach((route) => {
+            const polygonCoords = createFencePolygon(route.coordinates, route.radius);
+
+            if (polygonCoords) {
+                const point = turf.point([staticLocation[1], staticLocation[0]]);
+                const polygon = turf.polygon([polygonCoords]);
+
+                if (turf.booleanPointInPolygon(point, polygon)) {
+                    isMarkerInside = true;
+                }
+            }
+        });
+
+        setIsInsideFence(isMarkerInside);
+
+        if (!isMarkerInside && !isAlertSent && alertTrigger !== "edit") {
+            console.log("🚨 O marcador saiu do raio! Tentando chamar triggerAlert()...");
+            console.log("📍 Localização:", staticLocation);
+            console.log("📞 Números a serem enviados:", numbers);
+
+            triggerAlert(staticLocation, numbers);
+            setIsAlertSent(true);
         }
-      });
-  
-      setIsInsideFence(isMarkerInside);
-  
-      // 🔹 Se o marcador sair do raio e ainda não foi enviado um alerta de forma automática
-      if (!isMarkerInside && !isAlertSent && alertTrigger !== "edit") {
-        console.log("🚨 O marcador saiu do raio! Enviando alerta...");
-        triggerAlert(staticLocation, numbers);
-        setIsAlertSent(true);
-      }
-  
-      // 🔹 Se o marcador voltar para dentro do raio, reseta o estado para permitir novos alertas
-      if (isMarkerInside) {
-        setIsAlertSent(false);
-        setAlertTrigger(""); // Reseta o trigger
-      }
+
+        if (isMarkerInside) {
+            setIsAlertSent(false);
+            setAlertTrigger(""); 
+        }
     }
-  }, [savedRoutes, staticLocation]);
+}, [savedRoutes, staticLocation]);
+
+
+  
+  
   
   
   
@@ -327,7 +344,7 @@ const MapView = () => {
       </label>
 
       {/* Lista de Números de Celular */}
-      <h4 style={{ fontSize: "1.2rem", color: "#333" }}>Números para Envio:</h4>
+      {/* <h4 style={{ fontSize: "1.2rem", color: "#333" }}>Números para Envio:</h4>
       <ul style={{ listStyleType: "none", padding: 0, width: "100%" }}>
         {numbers.map((num, index) => (
           <li key={index} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
@@ -347,10 +364,10 @@ const MapView = () => {
             </button>
           </li>
         ))}
-      </ul>
+      </ul> */}
 
       {/* Input para adicionar novo número */}
-      <div style={{ width: "100%", display: "flex", gap: "10px" }}>
+      {/* <div style={{ width: "100%", display: "flex", gap: "10px" }}>
         <input
           type="text"
           value={newNumber}
@@ -377,7 +394,7 @@ const MapView = () => {
         >
           +
         </button>
-      </div>
+      </div> */}
 
       {/* Botão Salvar */}
       <button

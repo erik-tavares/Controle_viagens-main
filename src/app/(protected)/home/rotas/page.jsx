@@ -12,6 +12,7 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { FaFilter } from "react-icons/fa";
+import { FaTimes } from "react-icons/fa";
 import {
   Chart,
   CategoryScale,
@@ -61,7 +62,37 @@ export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const router = useRouter();
+  const [numbers, setNumbers] = useState(["5551998886750"]); // 🔹 Inicializando a lista com um número padrão
+  const [newNumber, setNewNumber] = useState(""); // 🔹 Estado para armazenar um novo número
+  const [isModalOpen, setIsModalOpen] = useState(false); // Estado da modal
+   // 🔹 Carregar números do LocalStorage ao iniciar
+   useEffect(() => {
+    const storedNumbers = JSON.parse(localStorage.getItem("phoneNumbers")) || ["5551998886750"];
+    console.log("📞 Números carregados do LocalStorage:", storedNumbers); // DEBUG
+    setNumbers(storedNumbers);
+  }, []);
+  
 
+  // 🔹 Função para salvar os números no LocalStorage
+  const saveNumbersToLocalStorage = (updatedNumbers) => {
+    localStorage.setItem("phoneNumbers", JSON.stringify(updatedNumbers));
+    setNumbers(updatedNumbers);
+  };
+
+  // 🔹 Função para adicionar um novo número
+  const addNumber = () => {
+    if (newNumber.trim() !== "" && !numbers.includes(newNumber)) {
+      const updatedNumbers = [...numbers, newNumber];
+      saveNumbersToLocalStorage(updatedNumbers);
+      setNewNumber("");
+    }
+  };
+
+  // 🔹 Função para remover um número
+  const removeNumber = (index) => {
+    const updatedNumbers = numbers.filter((_, i) => i !== index);
+    saveNumbersToLocalStorage(updatedNumbers);
+  };
   const statusOptions = [
     {
       value: "",
@@ -411,6 +442,7 @@ export default function Dashboard() {
             : styles["with-sidebar-closed"]
         }`}
       >
+        {/* Botões de ação */}
         <div className={styles.searchContainer}>
           <div className={styles.buttonContainer}>
             <button onClick={openAddressForm} className={styles.openButton}>
@@ -429,8 +461,206 @@ export default function Dashboard() {
               <FaFilter />
               {isFiltersVisible ? "Esconder Filtros" : "Filtrar"}
             </button>
+            {/* Botão para abrir a modal */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className={styles.openButton}
+            >
+              Editar Número de Telefone
+            </button>
           </div>
         </div>
+
+        <div>
+          {/* <div className={styles.buttonContainer}>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className={styles.openButton}
+              style={{
+                backgroundColor: "green",
+                color: "white",
+                border: "none",
+                padding: "10px 15px",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontSize: "16px",
+                margin: "10px 0",
+              }}
+            >
+              Editar Números
+            </button>
+          </div> */}
+          {/* Modal para edição e adição de números */}
+          <Modal
+            isOpen={isModalOpen}
+            onRequestClose={() => setIsModalOpen(false)}
+            style={{
+              overlay: {
+                backgroundColor: "rgba(0, 0, 0, 0.6)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 9999,
+              },
+              content: {
+                background: "white",
+                padding: "20px",
+                borderRadius: "12px",
+                width: "90%",
+                maxWidth: "450px",
+                textAlign: "center",
+                position: "relative",
+                boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.3)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              },
+            }}
+            ariaHideApp={false}
+          >
+            {/* Cabeçalho da modal */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                width: "100%",
+                alignItems: "center",
+              }}
+            >
+              <h2
+                style={{ margin: "0", fontSize: "1.5rem", fontWeight: "bold" }}
+              >
+                Editar Números
+              </h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  fontSize: "20px",
+                  cursor: "pointer",
+                }}
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            {/* Lista de números para edição */}
+            <h4
+              style={{
+                marginTop: "20px",
+                fontSize: "1.2rem",
+                fontWeight: "bold",
+              }}
+            >
+              Números para Envio:
+            </h4>
+            <ul style={{ listStyleType: "none", padding: 0, width: "100%" }}>
+              {numbers.map((num, index) => (
+                <li
+                  key={index}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <input
+                    type="text"
+                    value={num}
+                    onChange={(e) => {
+                      const updatedNumbers = [...numbers];
+                      updatedNumbers[index] = e.target.value;
+                      setNumbers(updatedNumbers);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: "10px",
+                      border: "1px solid #ccc",
+                      borderRadius: "6px",
+                      fontSize: "16px",
+                    }}
+                  />
+                  <button
+                    onClick={() => removeNumber(index)}
+                    style={{
+                      background: "red",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "6px",
+                      padding: "8px 12px",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                    }}
+                  >
+                    X
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            {/* Campo para adicionar novo número */}
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                marginTop: "10px",
+                width: "100%",
+              }}
+            >
+              <input
+                type="text"
+                value={newNumber}
+                onChange={(e) => setNewNumber(e.target.value)}
+                placeholder="Novo número"
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  border: "1px solid #ccc",
+                  borderRadius: "6px",
+                  fontSize: "16px",
+                }}
+              />
+              <button
+                onClick={addNumber}
+                style={{
+                  backgroundColor: "#007bff",
+                  color: "white",
+                  border: "none",
+                  padding: "10px",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  fontSize: "16px",
+                }}
+              >
+                +
+              </button>
+            </div>
+
+            {/* Botão para salvar e fechar */}
+            <button
+              onClick={() => setIsModalOpen(false)}
+              style={{
+                backgroundColor: "green",
+                color: "white",
+                border: "none",
+                padding: "12px",
+                width: "100%",
+                marginTop: "15px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "16px",
+                fontWeight: "bold",
+              }}
+            >
+              Salvar e Fechar
+            </button>
+          </Modal>
+        </div>
+
         <div>
           {isFiltersVisible && (
             <div className={styles.filterContainer}>
