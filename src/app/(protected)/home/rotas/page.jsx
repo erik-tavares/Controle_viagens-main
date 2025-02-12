@@ -84,12 +84,29 @@ export default function Dashboard() {
 
   // 🔹 Função para adicionar um novo número
   const addNumber = () => {
-    if (newNumber.trim() !== "" && !numbers.includes(newNumber)) {
-      const updatedNumbers = [...numbers, newNumber];
-      saveNumbersToLocalStorage(updatedNumbers);
-      setNewNumber("");
+    if (newNumber.trim() === "") {
+      alert("⚠️ Digite um número antes de adicionar!");
+      return;
     }
+  
+    if (numbers.includes(newNumber)) {
+      alert("⚠️ Esse número já foi adicionado!");
+      return;
+    }
+  
+    const updatedNumbers = [...numbers, newNumber];
+    saveNumbersToLocalStorage(updatedNumbers);
+    setNumbers(updatedNumbers);
+    setNewNumber("");
   };
+  
+  // Verifica se não há números na lista ao abrir a modal
+  useEffect(() => {
+    if (numbers.length === 0) {
+      alert("⚠️ Nenhum número foi adicionado. Por favor, adicione pelo menos um número.");
+    }
+  }, [numbers]);
+  
 
   // 🔹 Função para remover um número
   const removeNumber = (index) => {
