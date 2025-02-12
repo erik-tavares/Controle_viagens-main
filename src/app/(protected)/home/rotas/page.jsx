@@ -62,9 +62,9 @@ export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const router = useRouter();
-  const [numbers, setNumbers] = useState(["5551998886750"]); // 🔹 Inicializando a lista com um número padrão
-  const [newNumber, setNewNumber] = useState(""); // 🔹 Estado para armazenar um novo número
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado da modal
+  const [numbers, setNumbers] = useState(["5551998886750"]); 
+  const [newNumber, setNewNumber] = useState(""); 
+  const [isModalOpen, setIsModalOpen] = useState(false); 
   const [isHovered, setIsHovered] = useState(false);
 
   // 🔹 Carregar números do LocalStorage ao iniciar
@@ -181,7 +181,7 @@ export default function Dashboard() {
       ...prev,
       [name]: value,
     }));
-    setCurrentPage(1); // Resetar para a primeira página ao aplicar filtros
+    setCurrentPage(1); 
   };
 
   const goToPreviousPage = () => {
@@ -204,7 +204,7 @@ export default function Dashboard() {
       "Expectativa De Inicio": formatDateTime(route.startTimeExpected),
       "Fim(Data e Hora)": formatDateTime(route.endTime),
       "Expectativa De Chegada": formatDateTime(route.endTimeExpected),
-      Status: getStatusLabelText(route.status), // Usa a função para formatar com bolinhas
+      Status: getStatusLabelText(route.status), 
       Veículo: route.vehicle,
       "Cidade De Início": route.startCity || "N/A",
       "Cidade Final": route.endCity || "N/A",
@@ -539,14 +539,14 @@ export default function Dashboard() {
               <button
                 onClick={() => {
                   setIsModalOpen(false);
-                  setIsHovered(false); // Resetar para preto ao fechar a modal
+                  setIsHovered(false); 
                 }}
                 style={{
                   background: "transparent",
                   border: "none",
                   fontSize: "20px",
                   cursor: "pointer",
-                  color: isHovered ? "red" : "black", // Cor muda apenas no hover
+                  color: isHovered ? "red" : "black", 
                   transition: "color 0.3s ease-in-out",
                 }}
                 onMouseEnter={() => setIsHovered(true)}
