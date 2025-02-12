@@ -65,13 +65,16 @@ export default function Dashboard() {
   const [numbers, setNumbers] = useState(["5551998886750"]); // 🔹 Inicializando a lista com um número padrão
   const [newNumber, setNewNumber] = useState(""); // 🔹 Estado para armazenar um novo número
   const [isModalOpen, setIsModalOpen] = useState(false); // Estado da modal
-   // 🔹 Carregar números do LocalStorage ao iniciar
-   useEffect(() => {
-    const storedNumbers = JSON.parse(localStorage.getItem("phoneNumbers")) || ["5551998886750"];
+  const [isHovered, setIsHovered] = useState(false);
+
+  // 🔹 Carregar números do LocalStorage ao iniciar
+  useEffect(() => {
+    const storedNumbers = JSON.parse(localStorage.getItem("phoneNumbers")) || [
+      "5551998886750",
+    ];
     console.log("📞 Números carregados do LocalStorage:", storedNumbers); // DEBUG
     setNumbers(storedNumbers);
   }, []);
-  
 
   // 🔹 Função para salvar os números no LocalStorage
   const saveNumbersToLocalStorage = (updatedNumbers) => {
@@ -534,13 +537,20 @@ export default function Dashboard() {
                 Editar Números
               </h2>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setIsHovered(false); // Resetar para preto ao fechar a modal
+                }}
                 style={{
                   background: "transparent",
                   border: "none",
                   fontSize: "20px",
                   cursor: "pointer",
+                  color: isHovered ? "red" : "black", // Cor muda apenas no hover
+                  transition: "color 0.3s ease-in-out",
                 }}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
               >
                 <FaTimes />
               </button>
