@@ -62,9 +62,9 @@ export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const router = useRouter();
-  const [numbers, setNumbers] = useState(["5551998886750"]); 
-  const [newNumber, setNewNumber] = useState(""); 
-  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [numbers, setNumbers] = useState(["5551998886750"]);
+  const [newNumber, setNewNumber] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   // 🔹 Carregar números do LocalStorage ao iniciar
@@ -88,25 +88,26 @@ export default function Dashboard() {
       alert("⚠️ Digite um número antes de adicionar!");
       return;
     }
-  
+
     if (numbers.includes(newNumber)) {
       alert("⚠️ Esse número já foi adicionado!");
       return;
     }
-  
+
     const updatedNumbers = [...numbers, newNumber];
     saveNumbersToLocalStorage(updatedNumbers);
     setNumbers(updatedNumbers);
     setNewNumber("");
   };
-  
+
   // Verifica se não há números na lista ao abrir a modal
   useEffect(() => {
     if (numbers.length === 0) {
-      alert("⚠️ Nenhum número foi adicionado. Por favor, adicione pelo menos um número.");
+      alert(
+        "⚠️ Nenhum número foi adicionado. Por favor, adicione pelo menos um número."
+      );
     }
   }, [numbers]);
-  
 
   // 🔹 Função para remover um número
   const removeNumber = (index) => {
@@ -198,7 +199,7 @@ export default function Dashboard() {
       ...prev,
       [name]: value,
     }));
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const goToPreviousPage = () => {
@@ -221,7 +222,7 @@ export default function Dashboard() {
       "Expectativa De Inicio": formatDateTime(route.startTimeExpected),
       "Fim(Data e Hora)": formatDateTime(route.endTime),
       "Expectativa De Chegada": formatDateTime(route.endTimeExpected),
-      Status: getStatusLabelText(route.status), 
+      Status: getStatusLabelText(route.status),
       Veículo: route.vehicle,
       "Cidade De Início": route.startCity || "N/A",
       "Cidade Final": route.endCity || "N/A",
@@ -556,14 +557,14 @@ export default function Dashboard() {
               <button
                 onClick={() => {
                   setIsModalOpen(false);
-                  setIsHovered(false); 
+                  setIsHovered(false);
                 }}
                 style={{
                   background: "transparent",
                   border: "none",
                   fontSize: "20px",
                   cursor: "pointer",
-                  color: isHovered ? "red" : "black", 
+                  color: isHovered ? "red" : "black",
                   transition: "color 0.3s ease-in-out",
                 }}
                 onMouseEnter={() => setIsHovered(true)}

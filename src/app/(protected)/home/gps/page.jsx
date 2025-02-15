@@ -26,12 +26,13 @@ const MapView = () => {
   const [newNumber, setNewNumber] = useState("");
   const [isAlertSent, setIsAlertSent] = useState(false);
 
-useEffect(() => {
-    const storedNumbers = JSON.parse(localStorage.getItem("phoneNumbers")) || ["5551998886750"];
+  useEffect(() => {
+    const storedNumbers = JSON.parse(localStorage.getItem("phoneNumbers")) || [
+      "5551998886750",
+    ];
     console.log("📞 Números carregados do LocalStorage:", storedNumbers); // DEBUG
     setNumbers(storedNumbers);
   }, []);
-  
 
   // 🔹 Função para salvar os números no LocalStorage
   const saveNumbersToLocalStorage = (updatedNumbers) => {
@@ -88,47 +89,43 @@ useEffect(() => {
 
   useEffect(() => {
     if (savedRoutes.length > 0) {
-        let isMarkerInside = false;
+      let isMarkerInside = false;
 
-        savedRoutes.forEach((route) => {
-            const polygonCoords = createFencePolygon(route.coordinates, route.radius);
+      savedRoutes.forEach((route) => {
+        const polygonCoords = createFencePolygon(
+          route.coordinates,
+          route.radius
+        );
 
-            if (polygonCoords) {
-                const point = turf.point([staticLocation[1], staticLocation[0]]);
-                const polygon = turf.polygon([polygonCoords]);
+        if (polygonCoords) {
+          const point = turf.point([staticLocation[1], staticLocation[0]]);
+          const polygon = turf.polygon([polygonCoords]);
 
-                if (turf.booleanPointInPolygon(point, polygon)) {
-                    isMarkerInside = true;
-                }
-            }
-        });
-
-        setIsInsideFence(isMarkerInside);
-
-        if (!isMarkerInside && !isAlertSent && alertTrigger !== "edit") {
-            console.log("🚨 O marcador saiu do raio! Tentando chamar triggerAlert()...");
-            console.log("📍 Localização:", staticLocation);
-            console.log("📞 Números a serem enviados:", numbers);
-
-            triggerAlert(staticLocation, numbers);
-            setIsAlertSent(true);
+          if (turf.booleanPointInPolygon(point, polygon)) {
+            isMarkerInside = true;
+          }
         }
+      });
 
-        if (isMarkerInside) {
-            setIsAlertSent(false);
-            setAlertTrigger(""); 
-        }
+      setIsInsideFence(isMarkerInside);
+
+      if (!isMarkerInside && !isAlertSent && alertTrigger !== "edit") {
+        console.log(
+          "🚨 O marcador saiu do raio! Tentando chamar triggerAlert()..."
+        );
+        console.log("📍 Localização:", staticLocation);
+        console.log("📞 Números a serem enviados:", numbers);
+
+        triggerAlert(staticLocation, numbers);
+        setIsAlertSent(true);
+      }
+
+      if (isMarkerInside) {
+        setIsAlertSent(false);
+        setAlertTrigger("");
+      }
     }
-}, [savedRoutes, staticLocation]);
-
-
-  
-  
-  
-  
-  
-  
-  
+  }, [savedRoutes, staticLocation]);
 
   // const sendAlert = async () => {
   //   try {
@@ -138,9 +135,9 @@ useEffect(() => {
   //       queueId: "0",
   //       body: `O marcador está fora do raio de segurança!\nLocalização: Latitude ${staticLocation[0]}, Longitude ${staticLocation[1]}`,
   //     };
-  
+
   //     const response = await axios.post("https://atendimentoapi4.wichat.com.br/api/messages/send", payload);
-  
+
   //     console.log("Alerta enviado com sucesso!", response.data);
   //   } catch (error) {
   //     console.error("Erro ao enviar alerta:", error.response?.data || error.message);
@@ -179,17 +176,13 @@ useEffect(() => {
     setStaticLocation(newLocation);
     localStorage.setItem("markerLocation", JSON.stringify(newLocation));
     setIsEditing(false);
-  
+
     console.log("📍 Localização editada! Enviando alerta...");
-    
+
     // 🔹 Evita que o `useEffect` envie um alerta extra
     setAlertTrigger("edit");
     triggerAlert(newLocation, numbers);
   };
-  
-  
-  
-  
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
@@ -210,7 +203,7 @@ useEffect(() => {
         <MapContainer
           center={staticLocation}
           zoom={6}
-          style={{ height: "80vh", width: "100%" }}
+          style={{ height: "90vh", width: "100%" }}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -252,99 +245,105 @@ useEffect(() => {
       </div>
 
       {isEditing && (
-  <div
-    style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100vh",
-      backgroundColor: "rgba(0, 0, 0, 0.6)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 9999,
-      padding: "10px",
-    }}
-  >
-    <div
-      style={{
-        backgroundColor: "#fff",
-        padding: "30px",
-        borderRadius: "12px",
-        boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.3)",
-        width: "100%",
-        maxWidth: "400px",
-        textAlign: "center",
-        position: "relative",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "20px",
-      }}
-    >
-      {/* Botão de fechar */}
-      <button
-        onClick={() => setIsEditing(false)}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          background: "transparent",
-          border: "none",
-          cursor: "pointer",
-          fontSize: "20px",
-          color: "#333",
-          transition: "color 0.3s ease-in-out",
-        }}
-        onMouseEnter={(e) => (e.target.style.color = "red")}
-        onMouseLeave={(e) => (e.target.style.color = "#333")}
-      >
-        <FaTimes />
-      </button>
-
-      {/* Título */}
-      <h3 style={{ fontSize: "1.5rem", color: "#333", fontWeight: "bold" }}>
-        Editar Coordenadas
-      </h3>
-
-      {/* Inputs de Latitude e Longitude */}
-      <label style={{ fontWeight: "bold", textAlign: "left", width: "100%" }}>
-        Latitude:
-        <input
-          type="number"
-          step="0.000001"
-          value={latitude}
-          onChange={handleLatitudeChange}
+        <div
           style={{
-            marginTop: "5px",
-            width: "100%",
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
             padding: "10px",
-            border: "1px solid #ccc",
-            borderRadius: "6px",
           }}
-        />
-      </label>
+        >
+          <div
+            style={{
+              backgroundColor: "#fff",
+              padding: "30px",
+              borderRadius: "12px",
+              boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.3)",
+              width: "100%",
+              maxWidth: "400px",
+              textAlign: "center",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "20px",
+            }}
+          >
+            {/* Botão de fechar */}
+            <button
+              onClick={() => setIsEditing(false)}
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "20px",
+                color: "#333",
+                transition: "color 0.3s ease-in-out",
+              }}
+              onMouseEnter={(e) => (e.target.style.color = "red")}
+              onMouseLeave={(e) => (e.target.style.color = "#333")}
+            >
+              <FaTimes />
+            </button>
 
-      <label style={{ fontWeight: "bold", textAlign: "left", width: "100%" }}>
-        Longitude:
-        <input
-          type="number"
-          step="0.000001"
-          value={longitude}
-          onChange={handleLongitudeChange}
-          style={{
-            marginTop: "5px",
-            width: "100%",
-            padding: "10px",
-            border: "1px solid #ccc",
-            borderRadius: "6px",
-          }}
-        />
-      </label>
+            {/* Título */}
+            <h3
+              style={{ fontSize: "1.5rem", color: "#333", fontWeight: "bold" }}
+            >
+              Editar Coordenadas
+            </h3>
 
-      {/* Lista de Números de Celular */}
-      {/* <h4 style={{ fontSize: "1.2rem", color: "#333" }}>Números para Envio:</h4>
+            {/* Inputs de Latitude e Longitude */}
+            <label
+              style={{ fontWeight: "bold", textAlign: "left", width: "100%" }}
+            >
+              Latitude:
+              <input
+                type="number"
+                step="0.000001"
+                value={latitude}
+                onChange={handleLatitudeChange}
+                style={{
+                  marginTop: "5px",
+                  width: "100%",
+                  padding: "10px",
+                  border: "1px solid #ccc",
+                  borderRadius: "6px",
+                }}
+              />
+            </label>
+
+            <label
+              style={{ fontWeight: "bold", textAlign: "left", width: "100%" }}
+            >
+              Longitude:
+              <input
+                type="number"
+                step="0.000001"
+                value={longitude}
+                onChange={handleLongitudeChange}
+                style={{
+                  marginTop: "5px",
+                  width: "100%",
+                  padding: "10px",
+                  border: "1px solid #ccc",
+                  borderRadius: "6px",
+                }}
+              />
+            </label>
+
+            {/* Lista de Números de Celular */}
+            {/* <h4 style={{ fontSize: "1.2rem", color: "#333" }}>Números para Envio:</h4>
       <ul style={{ listStyleType: "none", padding: 0, width: "100%" }}>
         {numbers.map((num, index) => (
           <li key={index} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
@@ -366,8 +365,8 @@ useEffect(() => {
         ))}
       </ul> */}
 
-      {/* Input para adicionar novo número */}
-      {/* <div style={{ width: "100%", display: "flex", gap: "10px" }}>
+            {/* Input para adicionar novo número */}
+            {/* <div style={{ width: "100%", display: "flex", gap: "10px" }}>
         <input
           type="text"
           value={newNumber}
@@ -396,31 +395,30 @@ useEffect(() => {
         </button>
       </div> */}
 
-      {/* Botão Salvar */}
-      <button
-        onClick={handleSaveLocation}
-        style={{
-          backgroundColor: "#28a745",
-          color: "#fff",
-          border: "none",
-          padding: "12px 20px",
-          borderRadius: "8px",
-          fontSize: "16px",
-          cursor: "pointer",
-          fontWeight: "bold",
-          transition: "background-color 0.3s ease",
-          marginTop: "20px",
-          width: "100%",
-        }}
-        onMouseEnter={(e) => (e.target.style.backgroundColor = "#218838")}
-        onMouseLeave={(e) => (e.target.style.backgroundColor = "#28a745")}
-      >
-        Salvar
-      </button>
-    </div>
-  </div>
-)}
-
+            {/* Botão Salvar */}
+            <button
+              onClick={handleSaveLocation}
+              style={{
+                backgroundColor: "#28a745",
+                color: "#fff",
+                border: "none",
+                padding: "12px 20px",
+                borderRadius: "8px",
+                fontSize: "16px",
+                cursor: "pointer",
+                fontWeight: "bold",
+                transition: "background-color 0.3s ease",
+                marginTop: "20px",
+                width: "100%",
+              }}
+              onMouseEnter={(e) => (e.target.style.backgroundColor = "#218838")}
+              onMouseLeave={(e) => (e.target.style.backgroundColor = "#28a745")}
+            >
+              Salvar
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };
