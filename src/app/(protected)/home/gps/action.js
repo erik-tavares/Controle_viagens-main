@@ -2,22 +2,31 @@
 
 import { sendAlert } from "@/core/clients/clients";
 
-export const triggerAlert = async (staticLocation, numbers) => {
+export const triggerAlert = async (
+  staticLocation,
+  numbers,
+  savedRouteStart
+) => {
   try {
     console.log("🚀 triggerAlert() chamado!");
     console.log("📞 Números recebidos:", numbers);
     console.log("📍 Localização recebida:", staticLocation);
+    console.log("📦 Dados recebidos:", savedRouteStart);
 
-    if (!numbers || numbers.length === 0) {
-      console.error("❌ Nenhum número de telefone disponível!");
+    if (
+      !savedRouteStart ||
+      !savedRouteStart.startCity ||
+      !savedRouteStart.endCity
+    ) {
+      console.error("❌ savedRouteStart inválido:", savedRouteStart);
       return {
         success: false,
-        message: "Nenhum número de telefone fornecido.",
+        message: "Dados inválidos para envio do alerta.",
       };
     }
 
     console.log("📡 Chamando sendAlert()...");
-    const response = await sendAlert(staticLocation, numbers);
+    const response = await sendAlert(staticLocation, numbers, savedRouteStart);
 
     console.log("✅ Resposta da API dentro de triggerAlert():", response);
 

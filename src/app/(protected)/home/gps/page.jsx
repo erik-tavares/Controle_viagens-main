@@ -25,6 +25,7 @@ const MapView = () => {
   const [alertTrigger, setAlertTrigger] = useState(""); // "edit" ou "auto"
   const [newNumber, setNewNumber] = useState("");
   const [isAlertSent, setIsAlertSent] = useState(false);
+  const [savedRouteStart, setSavedRoutesStart] = useState([]);
 
   useEffect(() => {
     const storedNumbers = JSON.parse(localStorage.getItem("phoneNumbers")) || [
@@ -84,6 +85,78 @@ const MapView = () => {
     if (routeData) {
       const parsedData = JSON.parse(routeData);
       setSavedRoutes(parsedData.routes || [parsedData]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (
+      !savedRouteStart ||
+      !savedRouteStart.startCity ||
+      !savedRouteStart.endCity
+    ) {
+      console.warn(
+        "⚠ savedRouteStart ainda não carregado, aguardando atualização..."
+      );
+      return;
+    }
+
+    if (savedRoutes.length > 0) {
+      let isMarkerInside = false;
+
+      savedRoutes.forEach((route) => {
+        const polygonCoords = createFencePolygon(
+          route.coordinates,
+          route.radius
+        );
+        if (polygonCoords) {
+          const point = turf.point([staticLocation[1], staticLocation[0]]);
+          const polygon = turf.polygon([polygonCoords]);
+          if (turf.booleanPointInPolygon(point, polygon)) {
+            isMarkerInside = true;
+          }
+        }
+      });
+
+      setIsInsideFence(isMarkerInside);
+
+      console.log("📍 savedRouteStart atualizado:", savedRouteStart);
+
+      if (!isMarkerInside && !isAlertSent && alertTrigger !== "edit") {
+        console.log("🚨 O marcador saiu do raio! Chamando triggerAlert()...");
+        console.log("📍 Localização:", staticLocation);
+        console.log("📞 Números a serem enviados:", numbers);
+        console.log("📦 Dados da rota:", savedRouteStart);
+
+        triggerAlert(staticLocation, numbers, savedRouteStart);
+        setIsAlertSent(true);
+      }
+
+      if (isMarkerInside) {
+        setIsAlertSent(false);
+        setAlertTrigger("");
+      }
+    }
+  }, [savedRoutes, staticLocation, savedRouteStart]);
+
+  useEffect(() => {
+    const storedRoutes = JSON.parse(localStorage.getItem("selectedRoutes")) || {
+      routes: [],
+    };
+
+    if (storedRoutes.routes.length > 0) {
+      const { startCity, endCity } = storedRoutes.routes[0];
+
+      if (startCity && endCity) {
+        setSavedRoutesStart({ startCity, endCity }); // Define apenas as cidades
+        console.log("✅ Cidades carregadas em savedRouteStart:", {
+          startCity,
+          endCity,
+        });
+      } else {
+        console.warn("⚠ Dados de cidade ausentes em storedRoutes.routes[0]");
+      }
+    } else {
+      console.warn("⚠ Nenhuma rota encontrada no localStorage!");
     }
   }, []);
 
@@ -179,9 +252,9 @@ const MapView = () => {
 
     console.log("📍 Localização editada! Enviando alerta...");
 
-    // 🔹 Evita que o `useEffect` envie um alerta extra
+    // 🔹 Evita que o useEffect envie um alerta extra
     setAlertTrigger("edit");
-    triggerAlert(newLocation, numbers);
+    triggerAlert(newLocation, numbers, savedRouteStart);
   };
 
   const toggleSidebar = () => {
